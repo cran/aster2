@@ -1,0 +1,182 @@
+
+R version 2.12.0 (2010-10-15)
+Copyright (C) 2010 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: i686-pc-linux-gnu (32-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+>  #### copied from help page for function library
+> 
+>  pkg <- "aster"
+>  library(pkg, character.only = TRUE)
+Loading required package: trust
+> 
+>  set.seed(42)
+> 
+>  #### copied from help page for function aster in package aster
+> 
+>  data(echinacea)
+>  vars <- c("ld02", "ld03", "ld04", "fl02", "fl03", "fl04",
++      "hdct02", "hdct03", "hdct04")
+>  redata <- reshape(echinacea, varying = list(vars), direction = "long",
++      timevar = "varb", times = as.factor(vars), v.names = "resp")
+>  redata <- data.frame(redata, root = 1)
+>  pred <- c(0, 1, 2, 1, 2, 3, 4, 5, 6)
+>  fam <- c(1, 1, 1, 1, 1, 1, 3, 3, 3)
+>  hdct <- grep("hdct", as.character(redata$varb))
+>  hdct <- is.element(seq(along = redata$varb), hdct)
+>  redata <- data.frame(redata, hdct = as.integer(hdct))
+>  aout.foo <- aster(resp ~ varb + nsloc + ewloc + pop : hdct,
++      pred, fam, varb, id, root, data = redata, type = "conditional")
+>  summary(aout.foo)
+
+Call:
+aster.formula(formula = resp ~ varb + nsloc + ewloc + pop:hdct, 
+    pred = pred, fam = fam, varvar = varb, idvar = id, root = root, 
+    data = redata, type = "conditional")
+
+                  Estimate Std. Error z value Pr(>|z|)    
+(Intercept)     -0.4995654  0.1023286  -4.882 1.05e-06 ***
+varbfl03        -0.2937669  0.1497685  -1.961  0.04982 *  
+varbfl04         0.7530563  0.1464056   5.144 2.69e-07 ***
+varbhdct02       0.7985559  0.1545703   5.166 2.39e-07 ***
+varbhdct03       0.8090548  0.1599476   5.058 4.23e-07 ***
+varbhdct04       1.3591829  0.1394645   9.746  < 2e-16 ***
+varbld02         1.4843136  0.1392890  10.656  < 2e-16 ***
+varbld03         3.4767802  0.2495675  13.931  < 2e-16 ***
+varbld04         3.7907645  0.2884357  13.142  < 2e-16 ***
+nsloc            0.0287901  0.0044840   6.421 1.36e-10 ***
+ewloc            0.0246866  0.0046311   5.331 9.79e-08 ***
+popAA:hdct       0.0009275  0.1718323   0.005  0.99569    
+popEriley:hdct  -0.4481623  0.1395774  -3.211  0.00132 ** 
+popLf:hdct      -0.4784493  0.1651926  -2.896  0.00378 ** 
+popNWLF:hdct     0.0083396  0.1137225   0.073  0.94154    
+popNessman:hdct -0.0532078  0.1926065  -0.276  0.78236    
+popSPP:hdct     -0.1103975  0.1317470  -0.838  0.40206    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Original predictor variables dropped (aliased)
+     popStevens:hdct 
+> 
+>  beta <- aout.foo$coefficients
+>  dbeta <- rnorm(length(beta))
+> 
+>  pout <- predict(aout.foo, parm.type = "canonical",
++      model.type = "conditional", se.fit = TRUE)
+>  theta <- pout$fit
+>  dtheta <- as.vector(pout$gradient %*% dbeta)
+> 
+>  pout <- predict(aout.foo, parm.type = "canonical",
++      model.type = "unconditional", se.fit = TRUE)
+>  phi <- pout$fit
+>  dphi <- as.vector(pout$gradient %*% dbeta)
+> 
+>  pout <- predict(aout.foo, parm.type = "mean.value",
++      model.type = "unconditional", se.fit = TRUE)
+>  mu <- pout$fit
+>  dmu <- as.vector(pout$gradient %*% dbeta)
+> 
+>  phony <- matrix(1, nrow = nrow(aout.foo$x), ncol = ncol(aout.foo$x))
+>  pout <- predict.aster(aout.foo, x = phony, root = aout.foo$root,
++      modmat = aout.foo$modmat, parm.type = "mean.value",
++      model.type = "conditional", se.fit = TRUE)
+>  xi <- pout$fit
+>  dxi <- as.vector(pout$gradient %*% dbeta)
+> 
+>  offset <- as.vector(aout.foo$origin)
+>  modmat <- matrix(aout.foo$modmat, ncol = length(beta))
+> 
+>  #### copied from help page for function library
+> 
+>  detach(pos = match(paste("package", pkg, sep=":"), search()))
+> 
+>  #### end of stuff from old aster package
+> 
+>  rm(list = setdiff(ls(), c("beta", "theta", "phi", "xi", "mu", "tau",
++      "offset", "modmat", "dbeta", "dtheta", "dphi", "dxi", "dmu", "dtau")))
+> 
+>  library(aster2)
+This is beta software.
+Unless you need to do aster models with dependence groups,
+    use package "aster" instead.
+See help(aster2-package) for differences from package "aster"
+    and examples.
+> 
+>  data(echinacea)
+> 
+>  #### saturated
+> 
+>  myphi <- transformSaturated(theta, echinacea, from = "theta", to = "phi")
+>  all.equal(phi, myphi)
+[1] TRUE
+> 
+>  mytheta <- transformSaturated(phi, echinacea, from = "phi", to = "theta")
+>  all.equal(theta, mytheta)
+[1] TRUE
+> 
+>  myxi <- transformSaturated(theta, echinacea, from = "theta", to = "xi")
+>  all.equal(xi, myxi)
+[1] TRUE
+> 
+>  mymu <- transformSaturated(xi, echinacea, from = "xi", to = "mu")
+>  all.equal(mu, mymu)
+[1] TRUE
+> 
+>  #### unconditional from == "beta"
+> 
+>  phi.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "phi", offset = offset)
+>  all.equal(phi, phi.foo)
+[1] TRUE
+> 
+>  theta.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "theta", offset = offset)
+>  all.equal(theta, theta.foo)
+[1] TRUE
+> 
+>  xi.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "xi", offset = offset)
+>  all.equal(xi, xi.foo)
+[1] TRUE
+> 
+>  mu.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "mu", offset = offset)
+>  all.equal(mu, mu.foo)
+[1] TRUE
+> 
+>  #### unconditional from == "beta" (differential)
+> 
+>  dphi.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "phi", offset = offset, differential = dbeta)
+>  all.equal(dphi, dphi.foo)
+[1] TRUE
+> 
+>  dtheta.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "theta", offset = offset, differential = dbeta)
+>  all.equal(dtheta, dtheta.foo)
+[1] TRUE
+> 
+>  dxi.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "xi", offset = offset, differential = dbeta)
+>  all.equal(dxi, dxi.foo)
+[1] TRUE
+> 
+>  dmu.foo <- transformConditional(beta, modmat, echinacea,
++      from = "beta", to = "mu", offset = offset, differential = dbeta)
+>  all.equal(dmu, dmu.foo)
+[1] TRUE
+> 
+> 

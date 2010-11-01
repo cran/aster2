@@ -1,0 +1,28 @@
+
+useDynLib(aster2)
+
+export(asterdata)
+export(validasterdata)
+export(is.validasterdata)
+export(cumulant)
+export(link)
+export(fam.bernoulli)
+export(fam.poisson)
+export(fam.zero.truncated.poisson)
+export(fam.normal.location.scale)
+export(fam.multinomial)
+export(transformSaturated)
+export(transformConditional)
+export(transformUnconditional)
+export(jacobian)
+export(validtheta)
+export(is.validtheta)
+export(validxi)
+export(is.validxi)
+export(constancy)
+export(is.same)
+
+S3method(as.character, astfam)
+S3method(print, astfam)
+S3method(subset, asterdata)
+

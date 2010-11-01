@@ -1,0 +1,47 @@
+
+R version 2.12.0 (2010-10-15)
+Copyright (C) 2010 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: i686-pc-linux-gnu (32-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+>  library(aster2)
+This is beta software.
+Unless you need to do aster models with dependence groups,
+    use package "aster" instead.
+See help(aster2-package) for differences from package "aster"
+    and examples.
+> 
+>  data(echinacea)
+> 
+>  foo <- echinacea$redata$pop
+>  bar <- match(levels(foo), as.character(foo))
+>  baz <- echinacea$redata$id %in% echinacea$redata$id[bar]
+> 
+>  out <- subset(echinacea, baz)
+> 
+>  all(sort(unique(out$redata$id)) == sort(bar))
+[1] TRUE
+> 
+>  opred <- echinacea$repred[baz]
+>  ipred <- seq(along = echinacea$repred)[baz]
+>  all(c(0, ipred)[1 + out$repred] == opred)
+[1] TRUE
+> 
+>  opred <- echinacea$regroup[baz]
+>  all(c(0, ipred)[1 + out$regroup] == opred)
+[1] TRUE
+> 
+> 
