@@ -1,0 +1,115 @@
+
+R version 2.12.0 (2010-10-15)
+Copyright (C) 2010 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: i686-pc-linux-gnu (32-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+>  library(aster)
+Loading required package: trust
+>  data(sim)
+>  ls()
+[1] "beta.true"  "fam"        "ladata"     "mu.true"    "phi.true"  
+[6] "pred"       "redata"     "theta.true" "vars"      
+> 
+>  names(ladata)
+[1] "y"  "z1" "z2"
+>  names(redata)
+[1] "z1"   "z2"   "varb" "resp" "id"   "root"
+> 
+>  foo <- as.character(redata$varb)
+>  widein <- list(z1 = ladata$z1, z2 = ladata$z2)
+>  for (v in vars) {
++      widein[[v]] <- redata$resp[foo == v]
++  }
+>  names(widein)
+ [1] "z1"     "z2"     "isurv1" "isurv2" "isurv3" "isurv4" "iflow1" "iflow2"
+ [9] "iflow3" "iflow4" "nflow1" "nflow2" "nflow3" "nflow4" "nseed1" "nseed2"
+[17] "nseed3" "nseed4" "ngerm1" "ngerm2" "ngerm3" "ngerm4"
+> 
+>  all.equal(widein$ngerm1 + widein$ngerm2 + widein$ngerm3 + widein$ngerm4,
++      ladata$y)
+[1] TRUE
+> 
+>  library(aster2, lib.loc = "../../../aster2.Rcheck")
+This is beta software.
+Unless you need to do aster models with dependence groups,
+    use package "aster" instead.
+See help(aster2-package) for differences from package "aster"
+    and examples.
+
+Attaching package: 'aster2'
+
+The following object(s) are masked from 'package:aster':
+
+    fam.bernoulli, fam.poisson
+
+> 
+>  sim <- asterdata(as.data.frame(widein), vars = vars, pred = pred,
++      group = 0 * pred, code = fam,
++      families = list("bernoulli", "poisson", "zero.truncated.poisson"))
+> 
+>  names(sim)
+ [1] "redata"        "repred"        "regroup"       "recode"       
+ [5] "families"      "redelta"       "initial"       "response.name"
+ [9] "pred"          "group"         "code"         
+>  names(sim$redata)
+[1] "z1"   "z2"   "varb" "resp" "id"  
+>  names(redata)
+[1] "z1"   "z2"   "varb" "resp" "id"   "root"
+> 
+>  identical(sim$response.name, "resp")
+[1] TRUE
+>  identical(sim$initial, redata$root)
+[1] TRUE
+>  identical(sim$redata$resp, redata$resp)
+[1] TRUE
+>  identical(sim$redata$id, redata$id)
+[1] TRUE
+>  identical(sim$redata$id, redata$id)
+[1] TRUE
+>  identical(sim$redata$varb, redata$varb)
+[1] FALSE
+>  identical(sim$redata$z1, redata$z1)
+[1] FALSE
+>  identical(sim$redata$z2, redata$z2)
+[1] FALSE
+> 
+>  #### FALSE for varb is o. k. because sim just has levels in given order
+>  #### rather than alphabetical order.  Nodes are in the same order in both.
+>  setequal(levels(sim$redata$varb), levels(redata$varb))
+[1] TRUE
+>  identical(as.character(sim$redata$varb), as.character(redata$varb))
+[1] TRUE
+> 
+>  #### FALSE for z1 and z2 is NOT o. k.  Need to fix.
+>  is.fitness <- as.numeric(grepl("ngerm", as.character(sim$redata$varb)))
+>  sim$redata$z1 <- sim$redata$z1 * is.fitness
+>  sim$redata$z2 <- sim$redata$z2 * is.fitness
+> 
+>  identical(sim$redata$z1, redata$z1)
+[1] TRUE
+>  identical(sim$redata$z2, redata$z2)
+[1] TRUE
+> 
+>  sim <- list(data = sim, ladata = ladata)
+>  save(sim, file = "sim.rda")
+>  
+> 
+> proc.time()
+   user  system elapsed 
+  2.176   0.100   2.269 

@@ -44,7 +44,7 @@ predecessor of this package as the dataset \code{echinacea}.
 }
 \source{
 Stuart Wagenius,
-\url{http://www.chicagobotanic.org/research/staff/wagenius.php}
+\url{http://www.chicagobotanic.org/research/staff/wagenius}
 }
 \references{
 Geyer, C. J., Wagenius, S., and Shaw, R. G. (2007)

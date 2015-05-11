@@ -96,6 +96,7 @@ Unifying Life History Analyses for Inference of Fitness
 \code{\link{families}}
 }
 \examples{
+\dontrun{# perfectly good example but takes longer to run than CRAN allows
 data(echinacea)
 #### estimate MLE (simpler model than in Biometrika paper cited, not as good)
 hdct <- as.numeric(grepl("hdct", as.character(echinacea$redata$varb)))
@@ -147,4 +148,5 @@ sefit <- sqrt(diag(amat \%*\% jack \%*\% inverse.fisher \%*\% t(jack) \%*\% t(am
 foo <- cbind(efit, sefit)
 dimnames(foo) <- list(pop.names, c("Est. fitness", "Std. Error"))
 print(foo)
+}
 }

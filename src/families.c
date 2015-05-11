@@ -510,8 +510,8 @@ static void zero_truncated_poisson_validate_resp(double ypred,
         error("successor nonzero when predecessor zero");
     if (x != trunc(x))
         error("zero-truncated Poisson successor noninteger");
-    if (x < 0.0)
-        error("zero-truncated Poisson successor negative");
+    if (x < ypred)
+        error("zero-truncated Poisson successor not >= predecessor");
     if (*delta < 0.0 && x != ypred)
         error("zero-truncated Poisson successor != predecessor"
             " for lower limit");

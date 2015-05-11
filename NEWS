@@ -1,0 +1,14 @@
+aster2 News
+
+CHANGES IN 0.2
+
+  * hornworm dataset (data for Eck, et al.)
+
+  * fixes to validasterdata
+
+      - check for zero truncated Poisson did not check that y_j >= y_p(j).
+          Fixed.
+
+      - check names of input data frame did not note that reshape (which
+          this function uses) will take a column named "id" to be the idvar
+          whether or not this is intended.  Now warns.

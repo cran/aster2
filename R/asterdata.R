@@ -6,6 +6,9 @@ asterdata <- function(data, vars, pred, group, code, families, delta,
     stopifnot(is.atomic(vars))
     stopifnot(is.character(vars))
     stopifnot(all(vars %in% names(data)))
+    if ("id" %in% names(data))
+        warning("The reshape function (which this function uses) by default",
+            "\ntakes a column named \"id\" as its idvar.  Is this wanted?")
     stopifnot(is.atomic(pred))
     stopifnot(is.numeric(pred))
     stopifnot(length(pred) == length(vars))
