@@ -28,6 +28,7 @@ struct Family {
     void (*constancy)(int d, double *delta, int *nvec, double *vectors,
         double *rhs);
     void (*start_theta)(int d, double *theta);
+    void (*is_zero)(int d, double *delta, int *zeros);
 };
 
 // Bernoulli
@@ -206,6 +207,19 @@ static void zero_start_theta(int d, double *theta)
 }
 
 #ifndef __GNUC__
+static void bernoulli_is_zero(int d, double *delta, int *zeros)
+#else
+static void bernoulli_is_zero(int d __attribute__ ((unused)),
+    double *delta, int *zeros)
+#endif /* __GNUC__ */
+{
+    if (*delta < 0.0)
+        *zeros = 1;
+    else
+        *zeros = 0;
+}
+
+#ifndef __GNUC__
 static Family_t bernoulli_constructor(double *hyper1, double *hyper2)
 #else
 static Family_t bernoulli_constructor(double *hyper1 __attribute__ ((unused)),
@@ -225,7 +239,8 @@ static Family_t bernoulli_constructor(double *hyper1 __attribute__ ((unused)),
         do_nothing_validate_theta,
         bernoulli_validate_xi,
         bernoulli_constancy,
-        zero_start_theta
+        zero_start_theta,
+        bernoulli_is_zero
     };
     return result;
 }
@@ -381,7 +396,8 @@ static Family_t poisson_constructor(double *hyper1 __attribute__ ((unused)),
         do_nothing_validate_theta,
         poisson_validate_xi,
         poisson_constancy,
-        zero_start_theta
+        zero_start_theta,
+        bernoulli_is_zero
     };
     return result;
 }
@@ -550,6 +566,17 @@ static void zero_truncated_poisson_constancy(int d __attribute__ ((unused)),
 }
 
 #ifndef __GNUC__
+static void do_nothing_is_zero(int d, double *delta, int *zeros)
+#else
+static void do_nothing_is_zero(int d, double *delta __attribute__ ((unused)),
+    int *zeros)
+#endif /* __GNUC__ */
+{
+    for (int i = 0; i < d; i++)
+        zeros[i] = 0;
+}
+
+#ifndef __GNUC__
 static Family_t zero_truncated_poisson_constructor(double *hyper1,
     double *hyper2)
 #else
@@ -570,7 +597,8 @@ static Family_t zero_truncated_poisson_constructor(double *hyper1
         do_nothing_validate_theta,
         zero_truncated_poisson_validate_xi,
         zero_truncated_poisson_constancy,
-        zero_start_theta
+        zero_start_theta,
+        do_nothing_is_zero
     };
     return result;
 }
@@ -758,6 +786,17 @@ static void multinomial_constancy(int d, double *delta, int *nvec,
         }
 }
 
+static void multinomial_is_zero(int d, double *delta, int *zeros)
+{
+    double max_delta = R_NegInf;
+    for (int i = 0; i < d; i++)
+        if (delta[i] > max_delta)
+            max_delta = delta[i];
+
+    for (int i = 0; i < d; i++)
+        zeros[i] = delta[i] < max_delta;
+}
+
 #ifndef __GNUC__
 static Family_t multinomial_constructor(double *hyper1, double *hyper2)
 #else
@@ -783,7 +822,8 @@ static Family_t multinomial_constructor(double *hyper1, double *hyper2
         do_nothing_validate_theta,
         multinomial_validate_xi,
         multinomial_constancy,
-        zero_start_theta
+        zero_start_theta,
+        multinomial_is_zero
     };
     return result;
 }
@@ -991,7 +1031,8 @@ static Family_t normal_location_scale_constructor(double *hyper1
         normal_location_scale_validate_theta,
         normal_location_scale_validate_xi,
         normal_location_scale_constancy,
-        normal_location_scale_start_theta
+        normal_location_scale_start_theta,
+        do_nothing_is_zero
     };
     return result;
 }
@@ -1193,5 +1234,18 @@ void astfam_start_theta(int *fam, int *dimen, double *theta)
         error("astfam_start_theta: given dimension does not match"
             " dimension of family");
     famtab[foo].start_theta(d, theta);
+}
+
+void astfam_is_zero(int *fam, int *dimen, double *delta, int *zeros)
+{
+    if (*fam < 1 || *fam > nfam)
+        error("fam out of range");
+    // convert from one-origin indexing (for R) to zero-origin indexing (for C)
+    register int foo = (*fam) - 1;
+    register int d = famtab[foo].dimension;
+    if (*dimen != d)
+        error("astfam_is_zero: given dimension does not match"
+            " dimension of family");
+    famtab[foo].is_zero(d, delta, zeros);
 }
 

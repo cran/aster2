@@ -171,7 +171,7 @@ Currently implemented families are
       The cumulant function of this degenerate distribution is
       \deqn{c(\theta) = \log\left(\sum_{j \in A} e^{\theta_j}\right).}{c(theta) = log(sum(\{ theta[j] : j in A \})).}
       The canonical parameters \eqn{\theta_j}{theta[j]} for \eqn{j \notin A}{j not in A} are not identifiable, and one other canonical parameter is not
-      identifiable because of the constrant that the sum of the components
+      identifiable because of the constraint that the sum of the components
       of the canonical statistic is equal to one with probability one.
 
       For predecessor (sample size) \eqn{n}, the successor is the sum of

@@ -1,7 +1,6 @@
 
-R version 2.12.0 (2010-10-15)
-Copyright (C) 2010 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: i686-pc-linux-gnu (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -18,11 +17,13 @@ Type 'q()' to quit R.
 
 > 
 >  library(aster2)
+Loading required package: Matrix
 This is beta software.
 Unless you need to do aster models with dependence groups,
     use package "aster" instead.
 See help(aster2-package) for differences from package "aster"
     and examples.
+
 > 
 >  set.seed(42)
 > 
@@ -522,3 +523,6 @@ See help(aster2-package) for differences from package "aster"
 [1] TRUE
 > 
 > 
+> proc.time()
+   user  system elapsed 
+   2.58    0.08    2.66 

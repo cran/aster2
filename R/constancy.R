@@ -6,15 +6,15 @@ constancy <- function(data, parm.type = c("theta", "phi")) {
     fam.clear()
     for (i in seq(along = data$families))
         fam.set(data$families[[i]])
-    result <- .Call("aster_constancy",
+    result <- .Call(C_aster_constancy,
         as.integer(data$repred),
         as.integer(data$regroup),
         as.integer(data$recode),
         as.double(data$redelta),
-        parm.type == "theta",
-        PACKAGE = "aster2")
+        parm.type == "theta")
     fam.clear()
-    return(result)
+    return(sparseMatrix(i = result$i, j = result$j, x = result$x,
+        dims = c(max(0, result$i), length(data$regroup))))
 }
 
 is.same <- function(parm1, parm2, data, parm.type = c("theta", "phi"),
@@ -36,7 +36,7 @@ is.same <- function(parm1, parm2, data, parm.type = c("theta", "phi"),
     stopifnot(tolerance > 0)
 
     cmat <- constancy(data, parm.type = parm.type)
-    foo <- qr(t(cmat), lapack = TRUE)
+    foo <- qr(t(cmat))
     bar <- qr.resid(foo, parm1 - parm2)
     return(all(abs(bar) < tolerance))
 }

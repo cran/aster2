@@ -4,10 +4,9 @@
 \alias{is.validasterdata}
 \title{Object Describing Saturated Aster Model}
 \description{
-Encapsulate all data describing a saturated aster model into a single R object.
-All other functions in the package take model descriptions of this form.
-The contract for objects of class \code{"asterdata"} constructed by this
-function is described.  Functions that test conformance to the contract.
+Functions to construct and test conformance to the contract for objects
+of class \code{"asterdata"}.  All other functions in this package take
+model descriptions of this form.
 }
 \usage{
 asterdata(data, vars, pred, group, code, families, delta,
@@ -21,38 +20,52 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
     the aster model.}
   \item{vars}{a character vector containing names of variables in the data
     frame \code{data} that are components of the response vector of the
-    aster model (fitness components).}
+    aster model.}
   \item{pred}{an integer vector satisfying \code{length(pred) == length(vars)}
-    specifying the (arrows of the) graphical structure of the aster model
-    for a single individual.  Must be nonnegative and satisfy
+    specifying the arrows of the subgraph of the aster model corresponding
+    to a single individual.  Must be nonnegative and satisfy
     \code{all(pred < seq(along = pred))}.
-    Zero indicates the predecessor is an initial node
-    (formerly called root node) of the graph.  Nonzero indicates the fitness
-    component numbered \code{pred[j]} is the predecessor of
-    the fitness component numbered \code{j}.}
+    A zero value of \code{pred[j]} indicates the predecessor of node \code{j}
+    is an initial node (formerly called root node) of the subgraph.
+    A nonzero value of \code{pred[j]} indicates the predecessor of node
+    \code{j} is node \code{pred[j]}.  In either case there is an arrow in
+    the subgraph from predecessor node to successor node.}
   \item{group}{an integer vector satisfying \code{length(group) == length(vars)}
-    specifying the dependence group graphical structure of the aster model
-    for a single individual.  Must be nonnegative and satisfy
-    \code{all(group < seq(along = group))}.
-    Zero indicates the corresponding fitness component is not in a dependence
-    group (the corresponding fitness component is conditionally independent
-    of all other fitness components given its predecessor variable).
-    Nonzero indicates the fitness component numbered \code{group[j]} is in
-    the same dependence group as the fitness component numbered \code{j},
-    which requires \code{pred[group[j]] == pred[j]}
-    (fitness components in the same dependence group are conditionally
-    independent of all other fitness components given their common
-    predecessor variable but not conditionally independent of each other).}
+    specifying the lines of the subgraph of the aster model corresponding to
+    a single individual, which in turn specify the dependence groups.
+    Must be nonnegative and satisfy \code{all(group < seq(along = group))}.
+    Nonzero elements of \code{group} indicate nodes of the subgraph that
+    are connected by a line and hence are in the same dependence group:
+    nodes \code{j} and \code{group[j]} are connected by a line.  Since
+    nodes in the same dependence group must have the same predecessor,
+    this requires \code{pred[group[j]] == pred[j]}.  Since
+    nodes in the same dependence group must be in the same family,
+    this requires \code{code[group[j]] == code[j]}.
+    It also requires that the dimension of the family specified by
+    \code{code[j]} be the same as the number of nodes in the dependence
+    group.  Zero elements of \code{group} indicate nothing about dependence
+    groups.
+
+    The lines indicate a transitive relation.  If there is a line from
+    node \code{j1} to node \code{j2} and a line from
+    node \code{j2} to node \code{j3} then there is also a line from
+    node \code{j1} to node \code{j3}, but this line need not be specified
+    by the \code{group} vector, and indeed cannot.  If there is a dependence
+    group with \code{d} nodes, then there are \code{choose(d, 2)} lines
+    connecting these nodes, but the \code{group} vector can only specify
+    \code{d - 1} lines which imply the rest.
+
+    For example, if nodes \code{j1}, \code{j2}, \code{j3}, and \code{j4}
+    are to make up a four-dimensional dependence group and \code{j1 < j2},
+    \code{j2 < j3}, and \code{j3 < j4}, we must have \code{group[j1] == 0},
+    \code{group[j2] == j1}, \code{group[j3] == j2}, and
+    \code{group[j4] == j3}.
+    This is forced by the requirement \code{all(group < seq(along = group))}.}
   \item{code}{an integer vector satisfying \code{length(code) == length(vars)}
-    specifying the \emph{annotation} of the graphical structure of the aster
-    model for a single individual (which families label which arrows).
-    For component \code{j} the
-    arrow in question goes from the fitness component numbered \code{pred[j]}
-    to the fitness component numbered \code{j} if \code{pred[j]} is nonzero
-    and from the constant one to the fitness component numbered \code{j} if
-    the \code{pred[j]} is zero.  Components are in \code{seq(along = families)}
-    and indicate that the arrow for component \code{j} is labeled with the
-    family described by \code{families[j]}.
+    specifying the families corresponding to the dependence groups.
+    This requires \preformatted{all(code \%in\% seq(along = families)}
+    Node \code{j} is in a dependence group
+    with family described by \code{families[code[j]]}.
 
     Note that \code{group[j] == k}
     requires \code{families[j] == families[k]} when \code{k != 0}.}
@@ -79,7 +92,7 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
     of normal location-scale data.}
   \item{object}{an object of class \code{"asterdata"}.  The function
     \code{validasterdata} always returns \code{TRUE} or throws an error with
-    an informative message.  The function \code{is.validasterdata} never thows
+    an informative message.  The function \code{is.validasterdata} never throws
     an error unless \code{object} has the wrong class, returning \code{TRUE}
     or \code{FALSE} according to whether \code{object} does or does not
     conform to the contract for class \code{"asterdata"}.}
@@ -92,8 +105,9 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
   The number of response variables in the dependence group must match the
   dimension of the dependence group distribution.
 
-  This function only handles the usual case where each individual corresponds
-  to an isomorphic subgraph of the full graph and all initial nodes (formerly
+  This function only handles the usual case where the subgraph for every
+  individual is isomorphic to subgraph for every other individual
+  and all initial nodes (formerly
   called root nodes) correspond to the constant one.  Each row of \code{data}
   is the data for one individual.  The vectors \code{vars}, \code{pred},
   \code{group}, \code{code}, and \code{delta} (if not missing) describe
@@ -125,17 +139,17 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
       The variable named \code{"id"} is an integer vector that says which of
       the individuals (which rows of \code{data}) correspond to which rows
       of \code{redata}.  Not all objects of class \code{"asterdata"} need
-      have an \code{id} variable, although all those constucted by this
+      have an \code{id} variable, although all those constructed by this
       function do.}
     \item{repred}{an integer vector satisfying
-      \code{length(repred) == nrow(redata)} specifying the (arrows of the)
-      graphical structure of the aster model for all individuals.
+      \code{length(repred) == nrow(redata)} specifying the arrows of the
+      graph of the aster model for all individuals.
       Must be nonnegative and satisfy \code{all(repred < seq(along = repred))}.
-      Zero indicates the
-      predecessor is an initial node (formerly called root node) of the graph.
-      Nonzero indicates the element of the response vector with index
-      \code{repred[j]} is the
-      predecessor of the element of the response vector with index \code{j}.
+      A zero value of \code{repred[j]} indicates the predecessor of node
+      \code{j} is an initial node (formerly called root node) of the graph.
+      A nonzero value of \code{repred[j]} indicates the predecessor of node
+      \code{j} is node \code{repred[j]}.  In either case there is an arrow in
+      the graph from predecessor node to successor node.
 
       Note that
       \code{repred} is determined by \code{pred} but is quite different from
@@ -160,21 +174,39 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
       \dQuote{by hand}.}
     \item{regroup}{an integer vector satisfying
       \code{length(regroup) == nrow(redata)}
-      specifying the dependence group graphical structure of the aster model
-      for all individuals.  Must be nonnegative
+      specifying the lines of the graph of the aster model for all individuals,
+      which in turn specify the dependence groups.
+      Must be nonnegative
       and satisfy \code{all(regroup < seq(along = regroup))}.
-      Zero indicates the corresponding element of the response vector is not
-      in a dependence group (the corresponding element of the response vector
-      is conditionally independent of all elements of the response vector
-      given its predecessor variable).  Nonzero indicates the element of
-      the response vector with index \code{regroup[j]} is in
-      the same dependence group as the element of the response vector
-      with index \code{j},
-      which requires \code{repred[regroup[j]] == repred[j]}
-      (elements of the response vector in the same dependence group are
-      conditionally independent of all other elements of the response vector
-      given their common predecessor variable but not conditionally independent
-      of each other).
+      Nonzero elements of \code{regroup} indicate nodes of the graph that
+      are connected by a line and hence are in the same dependence group:
+      nodes \code{j} and \code{regroup[j]} are connected by a line.  Since
+      nodes in the same dependence group must have the same predecessor,
+      this requires \code{repred[regroup[j]] == repred[j]}.  Since
+      nodes in the same dependence group must be in the same family,
+      this requires \code{recode[regroup[j]] == recode[j]}.
+
+      It also requires that the dimension of the family specified by
+      \code{recode[j]} be the same as the number of nodes in the dependence
+      group.  Zero elements of \code{regroup} indicate nothing about dependence
+      groups.
+
+      The lines indicate a transitive relation.  If there is a line from
+      node \code{j1} to node \code{j2} and a line from
+      node \code{j2} to node \code{j3} then there is also a line from
+      node \code{j1} to node \code{j3}, but this line need not be specified
+      by the \code{group} vector, and indeed cannot.  If there is a dependence
+      group with \code{d} nodes, then there are \code{choose(d, 2)} lines
+      connecting these nodes, but the \code{group} vector can only specify
+      \code{d - 1} lines which imply the rest.
+
+      For example, if nodes \code{j1}, \code{j2}, \code{j3}, and \code{j4}
+      are to make up a four-dimensional dependence group and \code{j1 < j2},
+      \code{j2 < j3}, and \code{j3 < j4}, we must have \code{regroup[j1] == 0},
+      \code{regroup[j2] == j1}, \code{regroup[j3] == j2}, and
+      \code{regroup[j4] == j3}.
+      This is forced by the requirement
+      \code{all(regroup < seq(along = regroup))}.
 
       Note that
       \code{regroup} is determined by \code{group} but is quite different from
@@ -185,18 +217,10 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
       are row indices for the data frame \code{redata}.}
     \item{recode}{an integer vector satisfying
       \code{length(recode) == nrow(redata)}
-      specifying the \emph{annotation} of the graphical structure of the aster
-      model for all individuals (which families label which arrows).
-      For component \code{j} the
-      arrow in question goes from the element of the response vector
-      indexed by \code{repred[j]} to the element of the response vector
-      indexed by \code{j} if \code{repred[j]} is nonzero
-      and from the constant \code{initial[j]} to the element of
-      the response vector indexed by \code{j} if
-      the \code{repred[j]} is zero.  Components are in
-      \code{seq(along = families)}
-      and indicate that the arrow for component \code{j} is labeled with the
-      family described by \code{families[recode[j]]}.
+      specifying the families corresponding to the dependence groups.
+      This requires \preformatted{all(recode \%in\% seq(along = families)}
+      Node \code{j} is in a dependence group
+      with family described by \code{families[recode[j]]}.
 
       Note that \code{regroup[j] == k}
       requires \code{recode[j] == recode[k]} when \code{regroup[j] != 0}.
@@ -234,6 +258,9 @@ is.validasterdata(object, tolerance = 8 * .Machine$double.eps)
     \item{response.name}{a character string giving the name of the response
       variable in \code{redata}.  For this function, a copy of the argument
       \code{response.name}.}
+    \item{varb.name}{a character string giving the name of the \dQuote{varb}
+      variable in \code{redata}.  For this function, a copy of the argument
+      \code{varb.name}.}
   In addition an object of class \code{"asterdata"} may contain (and those
   constructed by this function do contain) components
   \code{pred}, \code{group}, and \code{code},

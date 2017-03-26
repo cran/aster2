@@ -21,7 +21,7 @@
  redata <- data.frame(redata, hdct = as.integer(hdct))
  aout.foo <- aster(resp ~ varb + nsloc + ewloc + pop : hdct,
      pred, fam, varb, id, root, data = redata, type = "conditional")
- summary(aout.foo)
+ # summary(aout.foo)
 
  beta <- aout.foo$coefficients
  dbeta <- rnorm(length(beta))

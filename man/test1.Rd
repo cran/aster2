@@ -11,7 +11,7 @@ implemented at the time the test data was created.  No predictor variables.
   A data frame with 100 observations on the following 8 variables.
   \describe{
     \item{\code{m1}}{a numeric vector, part of a multinomial dependence group
-      (with \code{m2} amd \code{m3}).  Predecessor of this group is the
+      (with \code{m2} and \code{m3}).  Predecessor of this group is the
       constant 1.}
     \item{\code{m2}}{a numeric vector.}
     \item{\code{m3}}{a numeric vector.}

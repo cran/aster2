@@ -12,3 +12,19 @@ CHANGES IN 0.2
       - check names of input data frame did not note that reshape (which
           this function uses) will take a column named "id" to be the idvar
           whether or not this is intended.  Now warns.
+
+CHANGES IN 0.2-1
+
+  * fix spelling error in DESCRIPTION file (CRAN checks spelling)
+
+CHANGES IN 0.3
+
+  * make constancy return a sparse matrix
+
+  * fix constancy to also have directions of constancy for nodes whose
+      predecessors are almost surely zero
+
+  * fix transformUnconditional to deal with sparse constancy matrices
+
+  * modernize registration of native routines
+

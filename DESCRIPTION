@@ -1,10 +1,11 @@
 Package: aster2
-Version: 0.2-1
-Date: 2015-05-11
+Version: 0.3
+Date: 2017-03-26
 Title: Aster Models
 Author: Charles J. Geyer <charlie@stat.umn.edu>.
 Maintainer: Charles J. Geyer <charlie@stat.umn.edu>
-Depends: R (>= 2.10.0)
+Depends: R (>= 3.2.0), Matrix
+Imports: stats
 Suggests: aster
 ByteCompile: TRUE
 Description: Aster models are exponential family regression models for life
@@ -26,6 +27,6 @@ Description: Aster models are exponential family regression models for life
 License: GPL (>= 2)
 URL: http://www.stat.umn.edu/geyer/aster/
 NeedsCompilation: yes
-Packaged: 2015-05-11 16:51:40 UTC; geyer
+Packaged: 2017-03-26 20:47:12 UTC; geyer
 Repository: CRAN
-Date/Publication: 2015-05-11 20:36:37
+Date/Publication: 2017-03-26 21:30:45 UTC

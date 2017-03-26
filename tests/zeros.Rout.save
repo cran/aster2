@@ -1,0 +1,124 @@
+
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: i686-pc-linux-gnu (32-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+>  library(aster2)
+Loading required package: Matrix
+This is beta software.
+Unless you need to do aster models with dependence groups,
+    use package "aster" instead.
+See help(aster2-package) for differences from package "aster"
+    and examples.
+
+> 
+>  data(test1)
+> 
+>  fred <- asterdata(test1,
++      vars = c("m1", "m2", "m3", "n1", "n2", "b1", "p1", "z1"),
++      pred = c(0, 0, 0, 1, 1, 2, 3, 6), group = c(0, 1, 2, 0, 4, 0, 0, 0),
++      code = c(1, 1, 1, 2, 2, 3, 4, 5),
++      families = list(fam.multinomial(3), "normal.location.scale",
++      "bernoulli", "poisson", "zero.truncated.poisson"))
+>  is.validasterdata(fred)
+[1] TRUE
+>  names(fred)
+ [1] "redata"        "repred"        "regroup"       "recode"       
+ [5] "families"      "redelta"       "initial"       "response.name"
+ [9] "varb.name"     "pred"          "group"         "code"         
+>  names(fred$redata)
+[1] "varb" "resp" "id"  
+> 
+>  czero <- function(data) {
++      validasterdata(data)
++      nnode <- length(data)
++      .C(aster2:::C_aster_predecessor_zero_cond,
++          nnode = as.integer(nnode), pred = as.integer(data$repred),
++          resp = as.double(data$redata[[data$response.name]]),
++          result = logical(nnode))$result
++  }
+> 
+>  uzero <- function(data) {
++      validasterdata(data)
++      nnode <- length(data)
++      aster2:::fam.clear()
++      for (i in seq(along = data$families))
++          aster2:::fam.set(data$families[[i]])
++      out <- .C(aster2:::C_aster_predecessor_zero_unco,
++          nnode = as.integer(nnode), pred = as.integer(data$repred),
++          group = as.integer(data$regroup), code = as.integer(data$recode),
++          delta = as.double(data$redelta), result = logical(nnode))
++      aster2:::fam.clear()
++      return(out$result)
++  }
+> 
+>  sally <- czero(fred)
+> 
+>  resp <- fred$redata[[fred$response.name]]
+>  pred <- fred$repred
+>  ypred <- c(NA, resp)[pred + 1]
+>  ypred[is.na(ypred)] <- fred$initial[is.na(ypred)]
+>  
+>  identical(sally, ypred == 0)
+[1] TRUE
+> 
+>  sally <- uzero(fred)
+>  all(sally == FALSE)
+[1] TRUE
+> 
+>  varb <- as.character(fred$redata[[fred$varb.name]])
+>  unique(varb)
+[1] "m1" "m2" "m3" "n1" "n2" "b1" "p1" "z1"
+> 
+>  set.seed(43)
+> 
+>  delta <- fred$redelta
+>  all(delta == 0)
+[1] TRUE
+>  delta[grepl("[mbp]", varb) & resp == 0 & runif(length(fred)) < 1 / 5] <- -1
+>  fred$redelta <- delta
+>  is.validasterdata(fred)
+[1] TRUE
+>  sum(delta != 0)
+[1] 84
+>  
+>  sally <- czero(fred)
+>  identical(sally, ypred == 0)
+[1] TRUE
+> 
+>  sally <- uzero(fred)
+>  my.sally <- 2 * as.numeric(delta < 0)
+>  # when loop done
+>  # my.sally == 2 means delta < 0 and predecessor NOT a. s. zero
+>  # my.sally == 1 means predecessor a. s. zero (regardless of delta)
+>  repeat {
++      save.my.sally <- my.sally
++      foom <- c(0, my.sally)[pred + 1]
++      my.sally[foom != 0] <- 1
++      if (identical(my.sally, save.my.sally)) break
++  }
+>  sum(my.sally == 2)
+[1] 75
+>  sum(my.sally == 1)
+[1] 105
+>  my.sally <- my.sally == 1
+>  identical(sally, my.sally)
+[1] TRUE
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.936   0.068   2.003 

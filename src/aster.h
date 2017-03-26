@@ -5,11 +5,11 @@
 void aster_validate(int *nnode, double *resp, int *pred, int *group,
     int *code, double *initial, double *delta);
 
-void aster_validate_theta(int *nnode, int *group, int *code,
-    double *delta, double *theta);
+void aster_validate_theta(int *nnode, int *pred, int *group, int *code,
+    int *want_uam, double *resp, double *delta, double *theta);
 
-void aster_validate_xi(int *nnode, int *group, int *code,
-    double *delta, double *xi);
+void aster_validate_xi(int *nnode, int *pred, int *group, int *code,
+    int *want_uam, double *resp, double *delta, double *xi);
 
 void aster_theta_to_phi(int *nnode, int *deriv, int *pred, int *group,
     int *code, double *delta, double *theta, double *dtheta, double *phi,
@@ -34,6 +34,14 @@ void aster_mu_to_xi(int *nnode, int *deriv, int *pred, double *initial,
     double *mu, double *dmu, double *xi, double *dxi);
 
 void aster_starting_theta(int *nnode, int *group, int *code, double *theta);
+
+void aster_predecessor_zero_cond(int *nnode, int *pred, double *resp,
+    int *result);
+
+void aster_predecessor_zero_unco(int *nnode, int *pred, int *group, int *code,
+    double *delta, int *result);
+
+void aster_revlink(int *nnode, int *group, int *revgroup);
 
 #endif /* ASTER2_ASTER_H_ */
 

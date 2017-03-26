@@ -74,17 +74,23 @@ void aster_validate(int *nnode, double *resp, int *pred, int *group,
 // validate conditional canonical parameter vector for an aster model.
 // Don't validate everything.  Call aster_validate for that.
 
-void aster_validate_theta(int *nnode, int *group, int *code,
-    double *delta, double *theta)
+void aster_validate_theta(int *nnode, int *pred, int *group, int *code,
+    int *want_uam, double *resp, double *delta, double *theta)
 {
     int n = nnode[0];
-    _Bool todo[n];
+    _Bool *todo = (_Bool *) R_alloc(n, sizeof(_Bool));
+    int *zeropred = (int *) R_alloc(n, sizeof(int));
+
+    if (want_uam[0])
+        aster_predecessor_zero_unco(nnode, pred, group, code, delta, zeropred);
+    else
+        aster_predecessor_zero_cond(nnode, pred, resp, zeropred);
 
     for (int i = 0; i < n; i++)
         todo[i] = 1;
 
     for (int i = n - 1; i >= 0; i--)
-        if (todo[i]) {
+        if ((! zeropred[i]) && todo[i]) {
             int d = 0;
             for (int j = i; j >= 0; j = group[j] - 1)
                 d++;
@@ -103,17 +109,23 @@ void aster_validate_theta(int *nnode, int *group, int *code,
 // validate conditional mean value parameter vector for an aster model.
 // Don't validate everything.  Call aster_validate for that.
 
-void aster_validate_xi(int *nnode, int *group, int *code,
-    double *delta, double *xi)
+void aster_validate_xi(int *nnode, int *pred, int *group, int *code,
+    int *want_uam, double *resp, double *delta, double *xi)
 {
     int n = nnode[0];
-    _Bool todo[n];
+    _Bool *todo = (_Bool *) R_alloc(n, sizeof(_Bool));
+    int *zeropred = (int *) R_alloc(n, sizeof(int));
+
+    if (want_uam[0])
+        aster_predecessor_zero_unco(nnode, pred, group, code, delta, zeropred);
+    else
+        aster_predecessor_zero_cond(nnode, pred, resp, zeropred);
 
     for (int i = 0; i < n; i++)
         todo[i] = 1;
 
     for (int i = n - 1; i >= 0; i--)
-        if (todo[i]) {
+        if ((! zeropred[i]) && todo[i]) {
             int d = 0;
             for (int j = i; j >= 0; j = group[j] - 1)
                 d++;

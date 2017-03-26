@@ -36,5 +36,7 @@ void astfam_constancy(int *fam, int *dimen, double *delta, int *nvec,
 
 void astfam_start_theta(int *fam, int *dimen, double *theta);
 
+void astfam_is_zero(int *fam, int *dimen, double *delta, int *zeros);
+
 #endif /* ASTER2_FAMILIES_H_ */
 

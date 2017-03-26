@@ -8,17 +8,7 @@ Aster Models
 \description{
 Aster models are exponential family graphical models that
 combine aspects of generalized linear models and survival analysis.
-}
-\details{
-\tabular{ll}{
-Package: \tab aster2\cr
-Version: \tab 0.1\cr
-Date: \tab 2010-09-12\cr
-Depends: \tab R (>= 2.6.0)\cr
-Suggests: \tab aster\cr
-License: \tab GPL (>= 2)\cr
-URL: \tab \url{http://www.stat.umn.edu/geyer/aster/}\cr
-}
+
 This package is still under development, only about half finished.
 However, it does do maximum likelihood for unconditional aster models
 with dependence groups, which the old package \code{aster} does not.
@@ -115,7 +105,7 @@ foo <- cbind(foo, 2 * pnorm(- abs(foo[ , 3])))
 dimnames(foo) <- list(colnames(modmat),
     c("Estimate", "Std. Error", "z value", "Pr(>|z|)"))
 printCoefmat(foo)
-#### coeffients constrained to be zero because parameterization is not
+#### coefficients constrained to be zero because parameterization is not
 #### identifiable have estimate zero and std. error zero (and rest NA)
 
 #### estimate fitness in populations

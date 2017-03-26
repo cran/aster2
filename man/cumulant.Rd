@@ -10,7 +10,7 @@ families known to the package.
 }
 \arguments{
   \item{theta}{canonical parameter value.}
-  \item{fam}{an object of class \code{"asterfam"} produced by one of
+  \item{fam}{an object of class \code{"astfam"} produced by one of
     the family functions (see \code{\link{families}}) specifying the
     exponential family.}
   \item{deriv}{the number of derivatives wanted.  Must be nonnegative

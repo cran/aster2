@@ -1,5 +1,6 @@
 
-useDynLib(aster2)
+# Refer to all C/Fortran routines by their name prefixed by C_
+useDynLib(aster2, .registration = TRUE, .fixes = "C_")
 
 export(asterdata)
 export(validasterdata)
@@ -25,4 +26,8 @@ export(is.same)
 S3method(as.character, astfam)
 S3method(print, astfam)
 S3method(subset, asterdata)
+S3method(length, asterdata)
+
+import(Matrix)
+importFrom("stats", "reshape")
 

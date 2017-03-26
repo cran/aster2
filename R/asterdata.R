@@ -88,8 +88,8 @@ asterdata <- function(data, vars, pred, group, code, families, delta,
     result <- structure(list(redata = redata, repred = repred,
         regroup = regroup, recode = recode, families = families,
         redelta = redelta, initial = rep(1, nrow(redata)),
-        response.name = response.name, pred = pred, group = group,
-        code = code), class = "asterdata")
+        response.name = response.name, varb.name = varb.name,
+        pred = pred, group = group, code = code), class = "asterdata")
     validasterdata(result, tolerance)
     return(result)
 }
@@ -162,10 +162,10 @@ validasterdata <- function(object, tolerance = 8 * .Machine$double.eps) {
     # set up families
     fam.clear()
     for (i in seq(along = families)) fam.set(families[[i]])
-    .C("aster_validate", nnode = length(resp), resp = as.double(resp),
+    .C(C_aster_validate, nnode = length(resp), resp = as.double(resp),
        pred = as.integer(repred), group = as.integer(regroup),
        code = as.integer(recode), initial = as.double(initial),
-       delta = as.double(redelta), PACKAGE = "aster2")
+       delta = as.double(redelta))
     fam.clear()
     fam.reset.tolerance()
     invisible(TRUE)
@@ -217,7 +217,8 @@ subset.asterdata <- function(x, subset, successors = TRUE, ...) {
     result <- list(redata = new.redata, repred = new.repred,
         regroup = new.regroup, recode = x$recode[subset],
         families = x$families, redelta = x$redelta[subset],
-        initial = x$initial[subset], response.name = x$response.name)
+        initial = x$initial[subset], response.name = x$response.name,
+        varb.name = x$varb.name)
     result$pred <- x$pred
     result$group <- x$group
     result$code <- x$code
@@ -225,4 +226,6 @@ subset.asterdata <- function(x, subset, successors = TRUE, ...) {
     validasterdata(result)
     return(result)
 }
+
+length.asterdata <- function(x) length(x$repred)
 

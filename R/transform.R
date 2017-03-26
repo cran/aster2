@@ -1,15 +1,18 @@
 
 transformSaturated <- function(parm, data,
     from = c("theta", "phi", "xi", "mu"), to = c("theta", "phi", "xi", "mu"),
-    differential, tolerance = 8 * .Machine$double.eps) {
+    differential, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+{
     from <- match.arg(from)
     to <- match.arg(to)
+    model.type <- match.arg(model.type)
     stopifnot(inherits(data, "asterdata"))
     validasterdata(data)
     stopifnot(is.atomic(parm))
     stopifnot(is.numeric(parm))
     stopifnot(is.finite(parm))
-    stopifnot(length(parm) == length(data$repred))
+    stopifnot(length(parm) == length(data))
     stopifnot(is.atomic(tolerance))
     stopifnot(is.numeric(tolerance))
     stopifnot(length(tolerance) == 1)
@@ -25,7 +28,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "phi") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_phi",
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -35,12 +38,11 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = double(0),
                 phi = double(length(parm)),
-                dphi = double(0),
-                PACKAGE = "aster2")
+                dphi = double(0))
             result <- out$phi
         }
         if (from == "phi" && to == "theta") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -50,8 +52,7 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
+                dtheta = double(0))
             result <- out$theta
             if (! is.validThetaNoSetNoClear(data, result))
                 stop("phi vector maps to invalid theta vector")
@@ -59,7 +60,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "xi") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -68,14 +69,13 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
+                dxi = double(0))
             result <- out$xi
         }
         if (from == "xi" && to == "theta") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -84,14 +84,13 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
+                dtheta = double(0))
             result <- out$theta
         }
         if (from == "xi" && to == "mu") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_mu",
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -99,12 +98,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = double(0),
                 mu = double(length(parm)),
-                dmu = double(0),
-                PACKAGE = "aster2")
+                dmu = double(0))
             result <- out$mu
         }
         if (from == "mu" && to == "xi") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -112,8 +110,7 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
+                dxi = double(0))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
             result <- out$xi
@@ -121,7 +118,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "mu") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -130,9 +127,8 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
-            out <- .C("aster_xi_to_mu",
+                dxi = double(0))
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -140,14 +136,13 @@ transformSaturated <- function(parm, data,
                 xi = out$xi,
                 dxi = double(0),
                 mu = double(length(parm)),
-                dmu = double(0),
-                PACKAGE = "aster2")
+                dmu = double(0))
             result <- out$mu
         }
         if (from == "xi" && to == "phi") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -156,9 +151,8 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
-            out <- .C("aster_theta_to_phi",
+                dtheta = double(0))
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -168,12 +162,11 @@ transformSaturated <- function(parm, data,
                 theta = out$theta,
                 dtheta = double(0),
                 phi = double(length(parm)),
-                dphi = double(0),
-                PACKAGE = "aster2")
+                dphi = double(0))
             result <- out$phi
         }
         if (from == "phi" && to == "xi") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -183,11 +176,10 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
+                dtheta = double(0))
             if (! is.validThetaNoSetNoClear(data, out$theta))
                 stop("phi vector maps to invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -196,12 +188,11 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
+                dxi = double(0))
             result <- out$xi
         }
         if (from == "phi" && to == "mu") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -211,11 +202,10 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
+                dtheta = double(0))
             if (! is.validThetaNoSetNoClear(data, out$theta))
                 stop("phi vector maps to invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -224,9 +214,8 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
-            out <- .C("aster_xi_to_mu",
+                dxi = double(0))
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -234,12 +223,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = double(0),
                 mu = double(length(parm)),
-                dmu = double(0),
-                PACKAGE = "aster2")
+                dmu = double(0))
             result <- out$mu
         }
         if (from == "mu" && to == "theta") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -247,11 +235,10 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
+                dxi = double(0))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -260,12 +247,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
+                dtheta = double(0))
             result <- out$theta
         }
         if (from == "mu" && to == "phi") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -273,11 +259,10 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = double(0),
                 xi = double(length(parm)),
-                dxi = double(0),
-                PACKAGE = "aster2")
+                dxi = double(0))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 group = as.integer(data$regroup),
@@ -286,9 +271,8 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = double(0),
                 theta = double(length(parm)),
-                dtheta = double(0),
-                PACKAGE = "aster2")
-            out <- .C("aster_theta_to_phi",
+                dtheta = double(0))
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(0),
                 pred = as.integer(data$repred),
@@ -298,8 +282,7 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = double(0),
                 phi = double(length(parm)),
-                dphi = double(0),
-                PACKAGE = "aster2")
+                dphi = double(0))
             result <- out$phi
         }
     } else {
@@ -313,7 +296,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "phi") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_phi",
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -323,12 +306,11 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = as.double(differential),
                 phi = double(length(parm)),
-                dphi = double(length(parm)),
-                PACKAGE = "aster2")
+                dphi = double(length(parm)))
             result <- out$dphi
         }
         if (from == "phi" && to == "theta") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -338,8 +320,7 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = as.double(differential),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
+                dtheta = double(length(parm)))
             result <- out$dtheta
             if (! is.validThetaNoSetNoClear(data, out$theta))
                 stop("phi vector maps to invalid theta vector")
@@ -347,7 +328,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "xi") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -356,14 +337,13 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = as.double(differential),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
+                dxi = double(length(parm)))
             result <- out$dxi
         }
         if (from == "xi" && to == "theta") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -372,14 +352,13 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = as.double(differential),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
+                dtheta = double(length(parm)))
             result <- out$dtheta
         }
         if (from == "xi" && to == "mu") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_mu",
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -387,12 +366,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = as.double(differential),
                 mu = double(length(parm)),
-                dmu = double(length(parm)),
-                PACKAGE = "aster2")
+                dmu = double(length(parm)))
             result <- out$dmu
         }
         if (from == "mu" && to == "xi") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -400,8 +378,7 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = as.double(differential),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
+                dxi = double(length(parm)))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
             result <- out$dxi
@@ -409,7 +386,7 @@ transformSaturated <- function(parm, data,
         if (from == "theta" && to == "mu") {
             if (! is.validThetaNoSetNoClear(data, parm))
                 stop("invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -418,9 +395,8 @@ transformSaturated <- function(parm, data,
                 theta = as.double(parm),
                 dtheta = as.double(differential),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
-            out <- .C("aster_xi_to_mu",
+                dxi = double(length(parm)))
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -428,14 +404,13 @@ transformSaturated <- function(parm, data,
                 xi = out$xi,
                 dxi = out$dxi,
                 mu = double(length(parm)),
-                dmu = double(length(parm)),
-                PACKAGE = "aster2")
+                dmu = double(length(parm)))
             result <- out$dmu
         }
         if (from == "xi" && to == "phi") {
             if (! is.validXiNoSetNoClear(data, parm))
                 stop("invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -444,9 +419,8 @@ transformSaturated <- function(parm, data,
                 xi = as.double(parm),
                 dxi = as.double(differential),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
-            out <- .C("aster_theta_to_phi",
+                dtheta = double(length(parm)))
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -456,12 +430,11 @@ transformSaturated <- function(parm, data,
                 theta = out$theta,
                 dtheta = out$dtheta,
                 phi = double(length(parm)),
-                dphi = double(length(parm)),
-                PACKAGE = "aster2")
+                dphi = double(length(parm)))
             result <- out$dphi
         }
         if (from == "phi" && to == "xi") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -471,11 +444,10 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = as.double(differential),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
+                dtheta = double(length(parm)))
             if (! is.validThetaNoSetNoClear(data, out$theta))
                 stop("phi vector maps to invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -484,12 +456,11 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = as.double(out$dtheta),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
+                dxi = double(length(parm)))
             result <- out$dxi
         }
         if (from == "phi" && to == "mu") {
-            out <- .C("aster_phi_to_theta",
+            out <- .C(C_aster_phi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -499,11 +470,10 @@ transformSaturated <- function(parm, data,
                 phi = as.double(parm),
                 dphi = as.double(differential),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
+                dtheta = double(length(parm)))
             if (! is.validThetaNoSetNoClear(data, out$theta))
                 stop("phi vector maps to invalid theta vector")
-            out <- .C("aster_theta_to_xi",
+            out <- .C(C_aster_theta_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -512,9 +482,8 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = as.double(out$dtheta),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
-            out <- .C("aster_xi_to_mu",
+                dxi = double(length(parm)))
+            out <- .C(C_aster_xi_to_mu,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -522,12 +491,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = as.double(out$dxi),
                 mu = double(length(parm)),
-                dmu = double(length(parm)),
-                PACKAGE = "aster2")
+                dmu = double(length(parm)))
             result <- out$dmu
         }
         if (from == "mu" && to == "theta") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -535,11 +503,10 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = as.double(differential),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
+                dxi = double(length(parm)))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -548,12 +515,11 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = as.double(out$dxi),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
+                dtheta = double(length(parm)))
             result <- out$dtheta
         }
         if (from == "mu" && to == "phi") {
-            out <- .C("aster_mu_to_xi",
+            out <- .C(C_aster_mu_to_xi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -561,11 +527,10 @@ transformSaturated <- function(parm, data,
                 mu = as.double(parm),
                 dmu = as.double(differential),
                 xi = double(length(parm)),
-                dxi = double(length(parm)),
-                PACKAGE = "aster2")
+                dxi = double(length(parm)))
             if (! is.validXiNoSetNoClear(data, out$xi))
                 stop("mu vector maps to invalid xi vector")
-            out <- .C("aster_xi_to_theta",
+            out <- .C(C_aster_xi_to_theta,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 group = as.integer(data$regroup),
@@ -574,9 +539,8 @@ transformSaturated <- function(parm, data,
                 xi = as.double(out$xi),
                 dxi = as.double(out$dxi),
                 theta = double(length(parm)),
-                dtheta = double(length(parm)),
-                PACKAGE = "aster2")
-            out <- .C("aster_theta_to_phi",
+                dtheta = double(length(parm)))
+            out <- .C(C_aster_theta_to_phi,
                 nnode = length(parm),
                 deriv = as.integer(1),
                 pred = as.integer(data$repred),
@@ -586,8 +550,7 @@ transformSaturated <- function(parm, data,
                 theta = as.double(out$theta),
                 dtheta = as.double(out$dtheta),
                 phi = double(length(parm)),
-                dphi = double(length(parm)),
-                PACKAGE = "aster2")
+                dphi = double(length(parm)))
             result <- out$dphi
         }
     }
@@ -599,7 +562,8 @@ transformSaturated <- function(parm, data,
 
 transformConditional <- function(parm, modmat, data, from = "beta",
     to = c("theta", "phi", "xi", "mu"), differential, offset,
-    tolerance = 8 * .Machine$double.eps) {
+    tolerance = 8 * .Machine$double.eps)
+{
     from <- match.arg(from)
     to <- match.arg(to)
     stopifnot(inherits(data, "asterdata"))
@@ -611,18 +575,18 @@ transformConditional <- function(parm, modmat, data, from = "beta",
     stopifnot(is.numeric(modmat))
     stopifnot(is.finite(modmat))
     stopifnot(is.matrix(modmat))
-    stopifnot(nrow(modmat) == length(data$repred))
+    stopifnot(nrow(modmat) == length(data))
     stopifnot(ncol(modmat) == length(parm))
     stopifnot(is.atomic(tolerance))
     stopifnot(is.numeric(tolerance))
     stopifnot(length(tolerance) == 1)
     stopifnot(tolerance > 0)
     if (missing(offset))
-        offset <- rep(0, length(data$repred))
+        offset <- rep(0, length(data))
     stopifnot(is.atomic(offset))
     stopifnot(is.numeric(offset))
     stopifnot(is.finite(offset))
-    stopifnot(length(offset) == length(data$repred))
+    stopifnot(length(offset) == length(data))
     result <- NULL
     if (missing(differential)) {
         result <- transformSaturated(offset + modmat %*% parm, data,
@@ -641,7 +605,8 @@ transformConditional <- function(parm, modmat, data, from = "beta",
 
 transformUnconditional <- function(parm, modmat, data,
     from = c("beta", "tau"), to = c("beta", "theta", "phi", "xi", "mu", "tau"),
-    differential, offset, tolerance = 8 * .Machine$double.eps) {
+    differential, offset, tolerance = 8 * .Machine$double.eps)
+{
     from <- match.arg(from)
     to <- match.arg(to)
     stopifnot(inherits(data, "asterdata"))
@@ -653,18 +618,18 @@ transformUnconditional <- function(parm, modmat, data,
     stopifnot(is.numeric(modmat))
     stopifnot(is.finite(modmat))
     stopifnot(is.matrix(modmat))
-    stopifnot(nrow(modmat) == length(data$repred))
+    stopifnot(nrow(modmat) == length(data))
     stopifnot(ncol(modmat) == length(parm))
     stopifnot(is.atomic(tolerance))
     stopifnot(is.numeric(tolerance))
     stopifnot(length(tolerance) == 1)
     stopifnot(tolerance > 0)
     if (missing(offset))
-        offset <- rep(0, length(data$repred))
+        offset <- rep(0, length(data))
     stopifnot(is.atomic(offset))
     stopifnot(is.numeric(offset))
     stopifnot(is.finite(offset))
-    stopifnot(length(offset) == length(data$repred))
+    stopifnot(length(offset) == length(data))
     result <- NULL
     if (missing(differential)) {
         if (from == to)
@@ -694,27 +659,41 @@ transformUnconditional <- function(parm, modmat, data,
                 differential = modmat %*% differential, tolerance = tolerance))
     }
     if (from == "tau" & to != "tau") {
+        if (is.null(colnames(modmat))) {
+            colnames(modmat) <- paste("m", 1:ncol(modmat), sep = "")
+        }
         consmat <- constancy(data, parm.type = "phi")
+        if (nrow(consmat) > 0) {
+            consmat.qr <- qr(t(consmat))
+            modmat.resid <- qr.resid(consmat.qr, modmat)
+        } else {
+            modmat.resid <- modmat
+        }
+        d <- dim(modmat.resid)
+        tol <- max(d) * .Machine$double.eps
+        modmat.resid.qr <- qr(modmat.resid, tol = tol, LAPACK = TRUE)
+        modmat.resid.r <- qr.R(modmat.resid.qr)
+        diagR <- diag(modmat.resid.r)
+        d.i <- abs(diagR)
+        inies <- colnames(modmat.resid.r)[d.i >= tol * max(d.i)]
+        outies <- colnames(modmat.resid.r)[d.i < tol * max(d.i)]
+        baz <- colnames(modmat) %in% inies
+        my.modmat <- modmat[ , baz]
+
         theta.start <- starting(data)
         phi.start <- transformSaturated(theta.start, data,
             from = "theta", to = "phi")
-        modmat.augmented <- cbind(t(consmat), modmat)
-        foo <- qr(modmat.augmented)
-        bar <- qr.coef(foo, phi.start - offset)
-        bar <- bar[seq(nrow(consmat) + 1, length(bar))]
-        baz <- (! is.na(bar))
-        beta.start <- bar
-        beta.start[is.na(beta.start)] <- 0
-        phi.start <- as.numeric(offset + modmat %*% beta.start)
+        my.modmat.qr <- qr(my.modmat)
+        my.beta.start <- qr.coef(my.modmat.qr, phi.start - offset)
+        phi.start <- as.numeric(offset + my.modmat %*% my.beta.start)
         theta.start <- transformSaturated(phi.start, data,
             from = "phi", to = "theta", tolerance = tolerance)
         if (! is.validtheta(data, theta.start)) {
             stop(paste("cannot find valid beta to start iteration,",
                " try different offset"))
         }
-        my.modmat <- modmat[ , baz]
+
         my.tau <- parm[baz]
-        my.beta.start <- beta.start[baz]
         gradfun <- function(x) my.tau - transformUnconditional(x,
             my.modmat, data, from = "beta", to = "tau",
             offset = offset)
@@ -768,7 +747,8 @@ jacobian <- function(parm, data,
     transform = c("saturated", "conditional", "unconditional"),
     from = c("beta", "theta", "phi", "xi", "mu", "tau"),
     to = c("beta", "theta", "phi", "xi", "mu", "tau"),
-    modmat, offset, tolerance = 8 * .Machine$double.eps) {
+    modmat, offset, tolerance = 8 * .Machine$double.eps)
+{
     transform <- match.arg(transform)
     from <- match.arg(from)
     to <- match.arg(to)
@@ -794,7 +774,7 @@ jacobian <- function(parm, data,
     stopifnot(length(tolerance) == 1)
     stopifnot(tolerance > 0)
     if (transform == "saturated") {
-        stopifnot(length(parm) == length(data$repred))
+        stopifnot(length(parm) == length(data))
         bar <- function(baz) foo(parm, data, from = from, to = to,
             differential = baz, tolerance = tolerance)
     } else {
@@ -802,14 +782,14 @@ jacobian <- function(parm, data,
         stopifnot(is.numeric(modmat))
         stopifnot(is.finite(modmat))
         stopifnot(is.matrix(modmat))
-        stopifnot(nrow(modmat) == length(data$repred))
+        stopifnot(nrow(modmat) == length(data))
         stopifnot(ncol(modmat) == length(parm))
         if (missing(offset))
-            offset <- rep(0, length(data$repred))
+            offset <- rep(0, length(data))
         stopifnot(is.atomic(offset))
         stopifnot(is.numeric(offset))
         stopifnot(is.finite(offset))
-        stopifnot(length(offset) == length(data$repred))
+        stopifnot(length(offset) == length(data))
         bar <- function(baz) foo(parm, modmat, data, from = from, to = to,
             differential = baz, offset = offset, tolerance = tolerance)
     }
@@ -830,13 +810,17 @@ jacobian <- function(parm, data,
     return(result)
 }
 
-validtheta <- function(data, theta, tolerance = 8 * .Machine$double.eps) {
+validtheta <- function(data, theta,
+    model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+{
+    model.type <- match.arg(model.type)
     stopifnot(inherits(data, "asterdata"))
     validasterdata(data)
     stopifnot(is.atomic(theta))
     stopifnot(is.numeric(theta))
     stopifnot(is.finite(theta))
-    stopifnot(length(theta) == length(data$repred))
+    stopifnot(length(theta) == length(data))
     stopifnot(is.atomic(tolerance))
     stopifnot(is.numeric(tolerance))
     stopifnot(length(tolerance) == 1)
@@ -845,43 +829,59 @@ validtheta <- function(data, theta, tolerance = 8 * .Machine$double.eps) {
     fam.clear()
     for (i in seq(along = data$families))
         fam.set(data$families[[i]])
-    out <- .C("aster_validate_theta", nnode = length(theta),
-        group = as.integer(data$regroup), code = as.integer(data$recode),
-        delta = as.double(data$redelta), theta = as.double(theta),
-        PACKAGE = "aster2")
+    .C(C_aster_validate_theta, nnode = length(theta),
+        pred = as.integer(data$repred), group = as.integer(data$regroup),
+        code = as.integer(data$recode),
+        want.uam = model.type == "unconditional",
+        resp = as.double(data$redata[[data$response.name]]),
+        delta = as.double(data$redelta), theta = as.double(theta))
     fam.reset.tolerance()
     fam.clear()
     invisible(TRUE)
 }
 
-is.validtheta <- function(data, theta, tolerance = 8 * .Machine$double.eps) {
-    out <- try(validtheta(data, theta, tolerance), silent = TRUE)
+is.validtheta <- function(data, theta,
+    model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+{
+    model.type <- match.arg(model.type)
+    out <- try(validtheta(data, theta, model.type, tolerance), silent = TRUE)
     return(! inherits(out, "try-error"))
 }
 
-## also need for internal use only an is.validtheta that doesn't set families
+## need for internal use only an is.validtheta that doesn't set families
 ## and doesn't clear them either
 
-is.validThetaNoSetNoClear <- function(data, theta) {
+is.validThetaNoSetNoClear <- function(data, theta,
+    model.type = c("unconditional", "conditional"))
+{
+    model.type <- match.arg(model.type)
     stopifnot(inherits(data, "asterdata"))
     stopifnot(is.atomic(theta))
     stopifnot(is.numeric(theta))
     stopifnot(is.finite(theta))
-    stopifnot(length(theta) == length(data$repred))
-    out <- try(.C("aster_validate_theta", nnode = length(theta),
-        group = as.integer(data$regroup), code = as.integer(data$recode),
-        delta = as.double(data$redelta), theta = as.double(theta),
-        PACKAGE = "aster2"), silent = TRUE)
+    stopifnot(length(theta) == length(data))
+    out <- try(.C(C_aster_validate_theta, nnode = length(theta),
+        pred = as.integer(data$repred), group = as.integer(data$regroup),
+        code = as.integer(data$recode),
+        want.uam = model.type == "unconditional",
+        resp = as.double(data$redata[[data$response.name]]),
+        delta = as.double(data$redelta), theta = as.double(theta)),
+        silent = TRUE)
     return(! inherits(out, "try-error"))
 }
 
-validxi <- function(data, xi, tolerance = 8 * .Machine$double.eps) {
+validxi <- function(data, xi,
+    model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+{
+    model.type <- match.arg(model.type)
     stopifnot(inherits(data, "asterdata"))
     validasterdata(data)
     stopifnot(is.atomic(xi))
     stopifnot(is.numeric(xi))
     stopifnot(is.finite(xi))
-    stopifnot(length(xi) == length(data$repred))
+    stopifnot(length(xi) == length(data))
     stopifnot(is.atomic(tolerance))
     stopifnot(is.numeric(tolerance))
     stopifnot(length(tolerance) == 1)
@@ -890,34 +890,44 @@ validxi <- function(data, xi, tolerance = 8 * .Machine$double.eps) {
     fam.clear()
     for (i in seq(along = data$families))
         fam.set(data$families[[i]])
-    out <- .C("aster_validate_xi", nnode = length(xi),
-        group = as.integer(data$regroup), code = as.integer(data$recode),
-        delta = as.double(data$redelta), xi = as.double(xi),
-        PACKAGE = "aster2")
+    .C(C_aster_validate_xi, nnode = length(xi),
+        pred = as.integer(data$repred), group = as.integer(data$regroup),
+        code = as.integer(data$recode),
+        want.uam = model.type == "unconditional",
+        resp = as.double(data$redata[[data$response.name]]),
+        delta = as.double(data$redelta), xi = as.double(xi))
     fam.reset.tolerance()
     fam.clear()
     invisible(TRUE)
 }
 
-is.validxi <- function(data, xi, tolerance = 8 * .Machine$double.eps) {
+is.validxi <- function(data, xi,
+    model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+{
+    model.type <- match.arg(model.type)
     stopifnot(inherits(data, "asterdata"))
-    out <- try(validxi(data, xi, tolerance), silent = TRUE)
+    out <- try(validxi(data, xi, model.type, tolerance), silent = TRUE)
     return(! inherits(out, "try-error"))
 }
 
-## also need for internal use only an is.validtheta that doesn't set families
+## also need for internal use only an is.validxi that doesn't set families
 ## and doesn't clear them either
 
-is.validXiNoSetNoClear <- function(data, xi) {
+is.validXiNoSetNoClear <- function(data, xi,
+    model.type = c("unconditional", "conditional"))
+{
     stopifnot(inherits(data, "asterdata"))
     stopifnot(is.atomic(xi))
     stopifnot(is.numeric(xi))
     stopifnot(is.finite(xi))
-    stopifnot(length(xi) == length(data$repred))
-    out <- try(.C("aster_validate_xi", nnode = length(xi),
-        group = as.integer(data$regroup), code = as.integer(data$recode),
-        delta = as.double(data$redelta), xi = as.double(xi),
-        PACKAGE = "aster2"), silent = TRUE)
+    stopifnot(length(xi) == length(data))
+    out <- try(.C(C_aster_validate_xi, nnode = length(xi),
+        pred = as.integer(data$repred), group = as.integer(data$regroup),
+        code = as.integer(data$recode),
+        want.uam = model.type == "unconditional",
+        resp = as.double(data$redata[[data$response.name]]),
+        delta = as.double(data$redelta), xi = as.double(xi)), silent = TRUE)
     return(! inherits(out, "try-error"))
 }
 

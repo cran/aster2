@@ -1,7 +1,6 @@
 
-R version 2.12.0 (2010-10-15)
-Copyright (C) 2010 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: i686-pc-linux-gnu (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -40,36 +39,7 @@ Loading required package: trust
 >  redata <- data.frame(redata, hdct = as.integer(hdct))
 >  aout.foo <- aster(resp ~ varb + nsloc + ewloc + pop : hdct,
 +      pred, fam, varb, id, root, data = redata, type = "conditional")
->  summary(aout.foo)
-
-Call:
-aster.formula(formula = resp ~ varb + nsloc + ewloc + pop:hdct, 
-    pred = pred, fam = fam, varvar = varb, idvar = id, root = root, 
-    data = redata, type = "conditional")
-
-                  Estimate Std. Error z value Pr(>|z|)    
-(Intercept)     -0.4995654  0.1023286  -4.882 1.05e-06 ***
-varbfl03        -0.2937669  0.1497685  -1.961  0.04982 *  
-varbfl04         0.7530563  0.1464056   5.144 2.69e-07 ***
-varbhdct02       0.7985559  0.1545703   5.166 2.39e-07 ***
-varbhdct03       0.8090548  0.1599476   5.058 4.23e-07 ***
-varbhdct04       1.3591829  0.1394645   9.746  < 2e-16 ***
-varbld02         1.4843136  0.1392890  10.656  < 2e-16 ***
-varbld03         3.4767802  0.2495675  13.931  < 2e-16 ***
-varbld04         3.7907645  0.2884357  13.142  < 2e-16 ***
-nsloc            0.0287901  0.0044840   6.421 1.36e-10 ***
-ewloc            0.0246866  0.0046311   5.331 9.79e-08 ***
-popAA:hdct       0.0009275  0.1718323   0.005  0.99569    
-popEriley:hdct  -0.4481623  0.1395774  -3.211  0.00132 ** 
-popLf:hdct      -0.4784493  0.1651926  -2.896  0.00378 ** 
-popNWLF:hdct     0.0083396  0.1137225   0.073  0.94154    
-popNessman:hdct -0.0532078  0.1926065  -0.276  0.78236    
-popSPP:hdct     -0.1103975  0.1317470  -0.838  0.40206    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
-
-Original predictor variables dropped (aliased)
-     popStevens:hdct 
+>  # summary(aout.foo)
 > 
 >  beta <- aout.foo$coefficients
 >  dbeta <- rnorm(length(beta))
@@ -109,11 +79,13 @@ Original predictor variables dropped (aliased)
 +      "offset", "modmat", "dbeta", "dtheta", "dphi", "dxi", "dmu", "dtau")))
 > 
 >  library(aster2)
+Loading required package: Matrix
 This is beta software.
 Unless you need to do aster models with dependence groups,
     use package "aster" instead.
 See help(aster2-package) for differences from package "aster"
     and examples.
+
 > 
 >  data(echinacea)
 > 
@@ -180,3 +152,6 @@ See help(aster2-package) for differences from package "aster"
 [1] TRUE
 > 
 > 
+> proc.time()
+   user  system elapsed 
+  2.456   0.092   2.612 

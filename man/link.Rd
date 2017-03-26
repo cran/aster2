@@ -10,11 +10,11 @@ families known to the package.
 }
 \arguments{
   \item{xi}{mean value parameter value, a numeric vector.}
-  \item{fam}{an object of class \code{"asterfam"} produced by one of
+  \item{fam}{an object of class \code{"astfam"} produced by one of
     the family functions (see \code{\link{families}}) specifying the
     exponential family.}
-  \item{deriv}{the number of derivatives wanted.  Must be nonnegative
-    integer less than or equal to three.}
+  \item{deriv}{the number of derivatives wanted.  Must be either
+    zero or one.}
   \item{delta}{direction in which limit is taken.  Link
     function is for family that is limit of family specified, limit
     being for distributions with canonical parameter

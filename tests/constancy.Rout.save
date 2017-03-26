@@ -1,7 +1,6 @@
 
-R version 2.12.0 (2010-10-15)
-Copyright (C) 2010 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: i686-pc-linux-gnu (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -18,11 +17,13 @@ Type 'q()' to quit R.
 
 > 
 >  library(aster2)
+Loading required package: Matrix
 This is beta software.
 Unless you need to do aster models with dependence groups,
     use package "aster" instead.
 See help(aster2-package) for differences from package "aster"
     and examples.
+
 > 
 >  ##### parm.type = "theta"
 > 
@@ -46,90 +47,191 @@ See help(aster2-package) for differences from package "aster"
 >  mycmat <- matrix(NA, nrow = length(multinomial.ind), ncol = nrow(fred$redata))
 >  for (ind in seq(along = multinomial.ind))
 +      mycmat[ind, ] <- as.numeric(fred$redata$id == ind & fred$recode == 1)
->  identical(cmat, mycmat)
+>  mycmat <- mycmat[rev(multinomial.ind), ]
+>  identical(cmat, Matrix(mycmat))
 [1] TRUE
 >  
 >  sally <- fred
 >  y <- sally$redata[[sally$response.name]]
 >  v <- as.character(sally$redata$varb)
->  ok <- y == 0 & v == "m1"
->  i.save <- numeric(0)
+>  ind <- sally$redata$id
+>  ind.save <- numeric(0)
 >  cmat.extra <- NULL
+>  is.zero <- rep(FALSE, length(y))
+> 
+>  i.buddy <- sally$regroup
+>  i.buddy[i.buddy == 0] <- NA
+>  i.buddy.buddy <- sally$regroup[i.buddy]
+>  i.buddy.buddy[i.buddy.buddy == 0] <- NA
+>  y.buddy <- y[i.buddy]
+>  y.buddy.buddy <- y[i.buddy.buddy]
+> 
+>  # find an individual for whom to constrain m1 == 0
+>  ok <- y == 0 & v == "m1"
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
-+      i.save <- i
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  y.buddy <- c(NA, y)[sally$regroup + 1]
->  y.buddy.buddy <- c(NA, y.buddy)[sally$regroup + 1]
->  ok <- y == 0 & y.buddy == 0 & v == "m2" & (! is.element(sally$regroup, i.save))
+>  # find another individual for whom to constrain m2 == 0
+>  ok <- y == 0 & v == "m2" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
-+      sally$redelta[sally$regroup[i]] <- (-1)
-+      i.save <- c(i.save, sally$regroup[i])
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
-+      foo <- rep(0, length(y))
-+      foo[sally$regroup[i]] <- 1
-+      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- seq(along = y)
->  if (length(i.save) > 0)
-+     ok <- ok[- i.save]
->  i <- ok[1]
->  sally$redelta[c(i, i + 100, i + 200)] <- (- 1)
->  ok <- y == 0 & v == "b1"
+>  # find another individual for whom to constrain m3 == 0
+>  ok <- y == 0 & v == "m3" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 1 & v == "b1"
+>  # find another individual for whom to constrain m1 == 0 and m2 == 0
+>  ok <- y != 0 & y.buddy == 0 & y.buddy.buddy == 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
+>  if (any(ok)) {
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[i] <- (-1)
++      sally$redelta[j] <- (-1)
++      is.zero[i] <- TRUE
++      is.zero[j] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[j] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain m1 == 0 and m3 == 0
+>  ok <- y == 0 & y.buddy != 0 & y.buddy.buddy == 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
+>  if (any(ok)) {
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[i] <- (-1)
++      sally$redelta[k] <- (-1)
++      is.zero[i] <- TRUE
++      is.zero[k] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[k] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain m2 == 0 and m3 == 0
+>  ok <- y == 0 & y.buddy == 0 & y.buddy.buddy != 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
+>  if (any(ok)) {
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[j] <- (-1)
++      sally$redelta[k] <- (-1)
++      is.zero[j] <- TRUE
++      is.zero[k] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[j] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[k] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain b1 == 0
+>  ok <- y == 0 & v == "b1" & (! (ind %in% ind.save))
+>  if (any(ok)) {
++      i <- seq(along = ok)[ok]
++      i <- i[1]
++      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain b1 == 1
+>  ok <- y == 1 & v == "b1" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (+1)
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 0 & v == "p1"
+>  # find another individual for whom to constrain p1 == 0
+>  ok <- y == 0 & v == "p1" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 1 & v == "z1"
+>  # find another individual for whom to constrain z1 == 1
+>  ok <- y == 1 & v == "z1" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  is.validasterdata(sally)
+[1] TRUE
+> 
+>  i.pred <- sally$repred
+>  i.pred[i.pred == 0] <- NA
+>  anc.is.zero <- rep(FALSE, length(y))
+>  repeat {
++      anc.is.zero.save <- anc.is.zero
++      anc.is.zero <- is.zero[i.pred] | anc.is.zero[i.pred]
++      anc.is.zero[is.na(anc.is.zero)] <- FALSE
++      if (identical(anc.is.zero, anc.is.zero.save)) break
++  }
+>  cmat.extra.extra <- matrix(0, sum(anc.is.zero), length(y))
+>  j <- seq(along = anc.is.zero)[anc.is.zero]
+>  for (i in 1:nrow(cmat.extra.extra)) {
++      cmat.extra.extra[i, j[i]] <- 1
 +  }
 >  
+>  dimnames(cmat.extra) <- NULL
 >  cmat.sally <- constancy(sally, parm.type = "theta")
->  cmat.char <- apply(cmat, 1, paste, collapse = "*")
+>  mycmat.sally <- rbind(cmat, cmat.extra, cmat.extra.extra)
 >  cmat.sally.char <- apply(cmat.sally, 1, paste, collapse = "*")
->  cmat.extra.char <- apply(cmat.extra, 1, paste, collapse = "*")
->  foo <- match(cmat, cmat.sally)
->  all(! is.na(foo))
-[1] TRUE
->  identical(sort(cmat.sally), sort(c(cmat, cmat.extra)))
+>  mycmat.sally.char <- apply(mycmat.sally, 1, paste, collapse = "*")
+>  identical(sort(cmat.sally.char), sort(mycmat.sally.char))
 [1] TRUE
 > 
 >  ##### is.same parm.type = "theta"
@@ -139,6 +241,7 @@ See help(aster2-package) for differences from package "aster"
 >  ! is.same(theta1, theta2, fred)
 [1] TRUE
 >  theta2 <- theta1 + t(cmat) %*% rnorm(nrow(cmat))
+>  theta2 <- as.numeric(theta2)
 >  is.same(theta1, theta2, fred)
 [1] TRUE
 > 
@@ -166,92 +269,201 @@ See help(aster2-package) for differences from package "aster"
 >  mycmat <- matrix(NA, nrow = length(multinomial.ind), ncol = nrow(fred$redata))
 >  for (ind in seq(along = multinomial.ind))
 +      mycmat[ind, ] <- as.numeric(fred$redata$id == ind & fred$recode == 1)
->  identical(cmat, mycmat)
+>  mycmat <- mycmat[rev(multinomial.ind), ]
+>  identical(cmat, Matrix(mycmat))
 [1] TRUE
->  
+> 
+>  # (from the help page for the R function asterdata) "note that the
+>  # conditional canonical parameter vector is always used here [for delta and
+>  # redelta], regardless of whether conditional or unconditional canonical
+>  # affine submodels are to be used
+> 
 >  sally <- fred
 >  y <- sally$redata[[sally$response.name]]
 >  v <- as.character(sally$redata$varb)
->  ok <- y == 0 & v == "m1"
->  i.save <- numeric(0)
+>  ind <- sally$redata$id
+>  ind.save <- numeric(0)
 >  cmat.extra <- NULL
+>  is.zero <- rep(FALSE, length(y))
+> 
+>  i.buddy <- sally$regroup
+>  i.buddy[i.buddy == 0] <- NA
+>  i.buddy.buddy <- sally$regroup[i.buddy]
+>  i.buddy.buddy[i.buddy.buddy == 0] <- NA
+>  y.buddy <- y[i.buddy]
+>  y.buddy.buddy <- y[i.buddy.buddy]
+> 
+>  i.pred <- sally$repred
+>  i.pred[i.pred == 0] <- NA
+>  y.pred <- y[i.pred]
+>  y.pred[is.na(y.pred)] <- 1
+> 
+>  # find an individual for whom to constrain m1 == 0
+>  ok <- y == 0 & v == "m1"
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
-+      i.save <- i
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  y.buddy <- c(NA, y)[sally$regroup + 1]
->  y.buddy.buddy <- c(NA, y.buddy)[sally$regroup + 1]
->  ok <- y == 0 & y.buddy == 0 & v == "m2" & (! is.element(sally$regroup, i.save))
+>  # find another individual for whom to constrain m2 == 0
+>  ok <- y == 0 & v == "m2" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
-+      sally$redelta[sally$regroup[i]] <- (-1)
-+      i.save <- c(i.save, sally$regroup[i])
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
-+      foo <- rep(0, length(y))
-+      foo[sally$regroup[i]] <- 1
-+      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- seq(along = y)
->  if (length(i.save) > 0)
-+     ok <- ok[- i.save]
->  i <- ok[1]
->  sally$redelta[c(i, i + 100, i + 200)] <- (- 1)
->  ok <- y == 0 & v == "b1"
+>  # find another individual for whom to constrain m3 == 0
+>  ok <- y == 0 & v == "m3" & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 1 & v == "b1"
+>  # find another individual for whom to constrain m1 == 0 and m2 == 0
+>  ok <- y != 0 & y.buddy == 0 & y.buddy.buddy == 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
 >  if (any(ok)) {
-+      i <- seq(along = ok)[ok]
-+      i <- i[1]
-+      sally$redelta[i] <- (+1)
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[i] <- (-1)
++      sally$redelta[j] <- (-1)
++      is.zero[i] <- TRUE
++      is.zero[j] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
-+      foo[sally$repred[i]] <- (-1)
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[j] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 0 & v == "p1"
+>  # find another individual for whom to constrain m1 == 0 and m3 == 0
+>  ok <- y == 0 & y.buddy != 0 & y.buddy.buddy == 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
+>  if (any(ok)) {
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[i] <- (-1)
++      sally$redelta[k] <- (-1)
++      is.zero[i] <- TRUE
++      is.zero[k] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[k] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain m2 == 0 and m3 == 0
+>  ok <- y == 0 & y.buddy == 0 & y.buddy.buddy != 0 & (! (ind %in% ind.save))
+>  ok[is.na(ok)] <- FALSE
+>  if (any(ok)) {
++      k <- seq(along = ok)[ok]
++      k <- k[1]
++      j <- i.buddy[k]
++      i <- i.buddy.buddy[k]
++      sally$redelta[j] <- (-1)
++      sally$redelta[k] <- (-1)
++      is.zero[j] <- TRUE
++      is.zero[k] <- TRUE
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[j] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++      foo <- rep(0, length(y))
++      foo[k] <- 1
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain b1 == 0
+>  ok <- y == 0 & v == "b1" & y.pred > 0 & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
 +      cmat.extra <- rbind(cmat.extra, foo)
 +  }
->  ok <- y == 1 & v == "z1"
+>  # find another individual for whom to constrain b1 == 1
+>  ok <- y == 1 & v == "b1" & y.pred > 0 & (! (ind %in% ind.save))
+>  if (any(ok)) {
++      i <- seq(along = ok)[ok]
++      i <- i[1]
++      sally$redelta[i] <- 1
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      foo[i.pred[i]] <- (-1)
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain p1 == 0
+>  ok <- y == 0 & v == "p1" & y.pred > 0 & (! (ind %in% ind.save))
 >  if (any(ok)) {
 +      i <- seq(along = ok)[ok]
 +      i <- i[1]
 +      sally$redelta[i] <- (-1)
++      is.zero[i] <- TRUE
++      ind.save <- c(ind.save, ind[i])
 +      foo <- rep(0, length(y))
 +      foo[i] <- 1
-+      foo[sally$repred[i]] <- (-1)
 +      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  # find another individual for whom to constrain z1 == 1
+>  ok <- y == 1 & v == "z1" & y.pred > 0 & (! (ind %in% ind.save))
+>  if (any(ok)) {
++      i <- seq(along = ok)[ok]
++      i <- i[1]
++      sally$redelta[i] <- (-1)
++      ind.save <- c(ind.save, ind[i])
++      foo <- rep(0, length(y))
++      foo[i] <- 1
++      foo[i.pred[i]] <- (-1)
++      cmat.extra <- rbind(cmat.extra, foo)
++  }
+>  is.validasterdata(sally)
+[1] TRUE
+> 
+>  anc.is.zero <- rep(FALSE, length(y))
+>  repeat {
++      anc.is.zero.save <- anc.is.zero
++      anc.is.zero <- is.zero[i.pred] | anc.is.zero[i.pred]
++      anc.is.zero[is.na(anc.is.zero)] <- FALSE
++      if (identical(anc.is.zero, anc.is.zero.save)) break
++  }
+>  cmat.extra.extra <- matrix(0, sum(anc.is.zero), length(y))
+>  j <- seq(along = anc.is.zero)[anc.is.zero]
+>  for (i in 1:nrow(cmat.extra.extra)) {
++      cmat.extra.extra[i, j[i]] <- 1
 +  }
 >  
+>  dimnames(cmat.extra) <- NULL
 >  cmat.sally <- constancy(sally, parm.type = "phi")
->  cmat.char <- apply(cmat, 1, paste, collapse = "*")
+>  mycmat.sally <- rbind(cmat, cmat.extra, cmat.extra.extra)
 >  cmat.sally.char <- apply(cmat.sally, 1, paste, collapse = "*")
->  cmat.extra.char <- apply(cmat.extra, 1, paste, collapse = "*")
->  foo <- match(cmat, cmat.sally)
->  all(! is.na(foo))
-[1] TRUE
->  identical(sort(cmat.sally), sort(c(cmat, cmat.extra)))
+>  mycmat.sally.char <- apply(mycmat.sally, 1, paste, collapse = "*")
+>  identical(sort(cmat.sally.char), sort(mycmat.sally.char))
 [1] TRUE
 > 
 >  ##### is.same parm.type = "phi"
@@ -261,7 +473,11 @@ See help(aster2-package) for differences from package "aster"
 >  ! is.same(phi1, phi2, fred, parm.type = "phi")
 [1] TRUE
 >  phi2 <- phi1 + t(cmat) %*% rnorm(nrow(cmat))
+>  phi2 <- as.numeric(phi2)
 >  is.same(phi1, phi2, fred, parm.type = "phi")
 [1] TRUE
 > 
 > 
+> proc.time()
+   user  system elapsed 
+  2.768   0.080   2.840 

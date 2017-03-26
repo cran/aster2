@@ -21,7 +21,7 @@
  redata <- data.frame(redata, hdct = as.integer(hdct))
  aout4 <- aster(resp ~ varb + nsloc + ewloc + pop * hdct - pop,
      pred, fam, varb, id, root, data = redata)
- summary(aout4)
+ # summary(aout4)
 
  beta <- aout4$coefficients
  dbeta <- rnorm(length(beta))
@@ -171,7 +171,12 @@
 
  beta.orig.foo <- transformUnconditional(tau.orig, modmat.orig, echinacea,
      from = "tau", to = "beta", offset = offset)
- all.equal(as.vector(beta.orig), beta.orig.foo)
+ delta.orig <- beta.orig.foo - beta.orig
+ eta.orig <- as.numeric(modmat.orig %*% delta.orig)
+ consmat <- constancy(echinacea, parm.type = "phi")
+ consmat.qr <- qr(t(consmat))
+ eta.orig.resid <- qr.resid(consmat.qr, eta.orig)
+ all.equal(max(abs(eta.orig.resid)), 0)
 
  #### unconditional from == "tau" (differential)
 

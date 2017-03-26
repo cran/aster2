@@ -12,6 +12,7 @@
 \usage{
 transformSaturated(parm, data, from = c("theta", "phi", "xi", "mu"),
   to = c("theta", "phi", "xi", "mu"), differential,
+  model.type = c("unconditional", "conditional"),
   tolerance = 8 * .Machine$double.eps)
 transformConditional(parm, modmat, data, from = "beta",
   to = c("theta", "phi", "xi", "mu"), differential,
@@ -24,10 +25,14 @@ jacobian(parm, data,
     from = c("beta", "theta", "phi", "xi", "mu", "tau"),
     to = c("beta", "theta", "phi", "xi", "mu", "tau"),
     modmat, offset, tolerance = 8 * .Machine$double.eps)
-validtheta(data, theta, tolerance = 8 * .Machine$double.eps)
-is.validtheta(data, theta, tolerance = 8 * .Machine$double.eps)
-validxi(data, xi, tolerance = 8 * .Machine$double.eps)
-is.validxi(data, xi, tolerance = 8 * .Machine$double.eps)
+validtheta(data, theta, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+is.validtheta(data, theta, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+validxi(data, xi, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
+is.validxi(data, xi, model.type = c("unconditional", "conditional"),
+    tolerance = 8 * .Machine$double.eps)
 }
 \description{
 Calculate a change-of-parameter for a saturated aster model or the
@@ -47,7 +52,8 @@ derivative of such a change-of-parameter.  Validate certain parameter vectors.
     May be abbreviated.}
   \item{differential}{if not missing a numeric vector of the same length
     as \code{parm}.  If missing the change-of-parameter is calculated.
-    If not missing the derivative of the change-of-parameter is calculated.}
+    If not missing the directional derivative of the change-of-parameter
+    is calculated (see Details section).}
   \item{modmat}{the model matrix for a canonical affine submodel, a
     numerical matrix having \code{nrow(data$redata)} rows
     and \code{length(beta)} columns for \code{transformConditional}
@@ -59,6 +65,8 @@ derivative of such a change-of-parameter.  Validate certain parameter vectors.
     a numerical vector of length \code{nrow(data$redata)}.}
   \item{xi}{conditional canonical parameter vector to validate,
     a numerical vector of length \code{nrow(data$redata)}.}
+  \item{model.type}{which kind of model (see Details section).
+    May be abbreviated.}
   \item{tolerance}{numeric >= 0.  Relative errors smaller
     than \code{tolerance} are not considered in checking validity
     of \code{xi} for multinomial data.}
@@ -100,6 +108,21 @@ the output vector is checked rather than the input vector, and conversions
 (apparently) not involving these parameters (which do go through these
 parameters inside the transformation function) a conversion to one of
 these parameters is what is checked rather than the input vector.
+
+There is a difference between conditional and unconditional aster models
+in the way they treat zero predecessors.  For a conditional aster model,
+if the observed value of the predecessor is zero, then the successor is
+zero almost surely and can have any parameter value for \eqn{\theta}{theta}
+or \eqn{\xi}{xi}.  For an unconditional aster model,
+if the expected value of the predecessor is zero, then the successor is
+zero almost surely and can have any parameter value for \eqn{\theta}{theta}
+or \eqn{\xi}{xi}.
+
+Since zero values are not allowed at initial nodes (not
+considered valid by the function \code{\link{validasterdata}}), the only
+way predecessor data can be zero almost surely in an unconditional aster model
+is if the delta vector (\code{data$redelta}) is not zero so we have a limiting
+model.
 
 The function \code{jacobian} turns the derivative considered as
 a linear transformation calculated by the \dQuote{transform} functions

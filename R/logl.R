@@ -5,12 +5,11 @@ starting <- function(data) {
     fam.clear()
     for (i in seq(along = data$families))
         fam.set(data$families[[i]])
-    out <- .C("aster_starting_theta",
+    out <- .C(C_aster_starting_theta,
         nnode = length(data$regroup),
         group = as.integer(data$regroup),
         code = as.integer(data$recode),
-        theta = double(length(data$regroup)),
-        PACKAGE = "aster2")
+        theta = double(length(data$regroup)))
     fam.clear()
     return(out$theta)
 }
