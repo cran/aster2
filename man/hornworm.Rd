@@ -76,7 +76,7 @@ which the individual eclosed.
 }
 \source{
 Joel Kingsolver
-\url{http://bio.unc.edu/people/faculty/kingsolver/}
+\url{https://bio.unc.edu/people/faculty/kingsolver/}
 }
 \references{
 Kingsolver, J. G., Diamond, S. E., Seiter, S. A., and Higgins, J. K. (2012)

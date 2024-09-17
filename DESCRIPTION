@@ -1,10 +1,10 @@
 Package: aster2
-Version: 0.3
-Date: 2017-03-26
+Version: 0.3-2
+Date: 2024-09-17
 Title: Aster Models
-Author: Charles J. Geyer <charlie@stat.umn.edu>.
-Maintainer: Charles J. Geyer <charlie@stat.umn.edu>
-Depends: R (>= 3.2.0), Matrix
+Authors@R: person(given = c("Charles", "J."), family = "Geyer",
+    role = c("aut", "cre"), email = "geyer@umn.edu")
+Depends: R (>= 3.6.0), Matrix
 Imports: stats
 Suggests: aster
 ByteCompile: TRUE
@@ -25,8 +25,10 @@ Description: Aster models are exponential family regression models for life
     node), including multinomial and two-parameter normal as families.  Thus
     this package also generalizes mark-capture-recapture analysis.
 License: GPL (>= 2)
-URL: http://www.stat.umn.edu/geyer/aster/
+URL: https://www.stat.umn.edu/geyer/aster/
 NeedsCompilation: yes
-Packaged: 2017-03-26 20:47:12 UTC; geyer
+Packaged: 2024-09-17 20:47:12 UTC; geyer
+Author: Charles J. Geyer [aut, cre]
+Maintainer: Charles J. Geyer <geyer@umn.edu>
 Repository: CRAN
-Date/Publication: 2017-03-26 21:30:45 UTC
+Date/Publication: 2024-09-17 22:10:11 UTC

@@ -35,7 +35,7 @@ is.validxi(data, xi, model.type = c("unconditional", "conditional"),
     tolerance = 8 * .Machine$double.eps)
 }
 \description{
-Calculate a change-of-parameter for a saturated aster model or the
+Calculate a change-of-parameter for an aster model or the
 derivative of such a change-of-parameter.  Validate certain parameter vectors.
 }
 \arguments{
@@ -59,7 +59,7 @@ derivative of such a change-of-parameter.  Validate certain parameter vectors.
     and \code{length(beta)} columns for \code{transformConditional}
     or \code{length(parm)} columns for \code{transformUnconditional}.}
   \item{offset}{the offset vector for a canonical affine submodel, a
-    a numerical vector of length \code{nrow(data$redata)}.  May be missing,
+    numerical vector of length \code{nrow(data$redata)}.  May be missing,
     in which case offset vector equal to zero is used.}
   \item{theta}{conditional canonical parameter vector to validate,
     a numerical vector of length \code{nrow(data$redata)}.}
